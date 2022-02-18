@@ -45,7 +45,7 @@ func (c *GatewayController) onCacheSynced() {
 type Manager struct {
 }
 
-func NewGatewayManager(c *config.EdgeGatewayConfig) *Manager {
+func NewGatewayManager(c *config.EdgeAutoGwConfig) *Manager {
 	mgr := &Manager{}
 
 	return mgr
