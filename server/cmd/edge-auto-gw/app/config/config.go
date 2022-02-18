@@ -46,7 +46,7 @@ type CommonConfig struct {
 // Modules indicates the modules of edgeAutoGw will be use
 type Modules struct {
 	// EdgeDNSConfig indicates edgedns module config
-	EdgeAutoConfig *autogwconfig.EdgeAutoGwConfig `json:"edgeDNS,omitempty"`
+	EdgeAutoConfig *autogwconfig.EdgeAutoGwConfig `json:"edgeAutoGw,omitempty"`
 }
 
 // NewEdgeAutoGwConfig returns a full EdgeAutoGwConfig object
