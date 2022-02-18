@@ -1,12 +1,12 @@
-package gateway
+package autogw
 
 import (
 	"fmt"
 
 	"github.com/kubeedge/beehive/pkg/core"
 
-	"github.com/yz271544/edge-auto-gw/common/informers"
-	"github.com/yz271544/edge-auto-gw/common/modules"
+	"github.com/yz271544/edge-auto-gw/server/common/informers"
+	"github.com/yz271544/edge-auto-gw/server/common/modules"
 	"github.com/yz271544/edge-auto-gw/server/pkg/autogw/config"
 	"github.com/yz271544/edge-auto-gw/server/pkg/autogw/controller"
 )
@@ -50,7 +50,7 @@ func (eag *EdgeAutoGw) Group() string {
 
 // Enable indicates whether enable this module
 func (eag *EdgeAutoGw) Enable() bool {
-	return gw.Config.Enable
+	return eag.Config.Enable
 }
 
 // Start EdgeAutoGw

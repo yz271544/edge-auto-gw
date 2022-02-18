@@ -11,13 +11,14 @@ import (
 	"k8s.io/klog/v2"
 	"sigs.k8s.io/yaml"
 
-	autogwconfig "github.com/yz271544/edge-auto-gw/cloud/pkg/gateway/config"
+	autogwconfig "github.com/yz271544/edge-auto-gw/server/pkg/autogw/config"
 )
 
 const (
-	GroupName  = "edgeautogw.config.kubeedge.io"
-	APIVersion = "v1alpha1"
-	Kind       = "EdgeAutoGw"
+	GroupName            = "edgeautogw.config.kubeedge.io"
+	APIVersion           = "v1alpha1"
+	Kind                 = "EdgeAutoGw"
+	DefaultConfigMapName = "edge-auto-gw-cfg"
 )
 
 // EdgeAutoGwConfig indicates the config of edgeAutoGw which get from edgeAutoGw config file
@@ -26,29 +27,29 @@ type EdgeAutoGwConfig struct {
 	// CommonConfig indicates common config for all modules
 	// +Required
 	CommonConfig *CommonConfig `json:"commonConfig,omitempty"`
-	// KubeAPIConfig indicates the kubernetes cluster info which edgeMeshAgent will connected
+	// KubeAPIConfig indicates the kubernetes cluster info which edgeAutoGw will connected
 	// +Required
 	KubeAPIConfig *v1alpha1.KubeAPIConfig `json:"kubeAPIConfig,omitempty"`
-	// Modules indicates edgeMeshAgent modules config
+	// Modules indicates edgeAutoGw modules config
 	// +Required
 	Modules *Modules `json:"modules,omitempty"`
 }
 
 // CommonConfig defines some common configuration items
 type CommonConfig struct {
-	// ConfigMapName indicates the configmap mounted by edgemesh-agent,
-	// which contains all the configuration information of edgemesh-agent
-	// default edgemesh-agent-cfg
+	// ConfigMapName indicates the configmap mounted by edge-auto-gw,
+	// which contains all the configuration information of edge-auto-gw
+	// default edge-auto-gw-cfg
 	ConfigMapName string `json:"configMapName,omitempty"`
 }
 
-// Modules indicates the modules of edgeMeshAgent will be use
+// Modules indicates the modules of edgeAutoGw will be use
 type Modules struct {
 	// EdgeDNSConfig indicates edgedns module config
 	EdgeAutoConfig *autogwconfig.EdgeAutoGwConfig `json:"edgeDNS,omitempty"`
 }
 
-// NewEdgeMeshAgentConfig returns a full EdgeMeshAgentConfig object
+// NewEdgeAutoGwConfig returns a full EdgeAutoGwConfig object
 func NewEdgeAutoGwConfig() *EdgeAutoGwConfig {
 	c := &EdgeAutoGwConfig{
 		TypeMeta: metav1.TypeMeta{

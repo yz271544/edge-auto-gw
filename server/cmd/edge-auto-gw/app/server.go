@@ -15,11 +15,11 @@ import (
 	"k8s.io/component-base/term"
 	"k8s.io/klog/v2"
 
-	"github.com/yz271544/edge-auto-gw/common/informers"
-	"github.com/yz271544/edge-auto-gw/pkg/autogw"
 	"github.com/yz271544/edge-auto-gw/server/cmd/edge-auto-gw/app/config"
 	"github.com/yz271544/edge-auto-gw/server/cmd/edge-auto-gw/app/config/validation"
 	"github.com/yz271544/edge-auto-gw/server/cmd/edge-auto-gw/app/options"
+	"github.com/yz271544/edge-auto-gw/server/common/informers"
+	"github.com/yz271544/edge-auto-gw/server/pkg/autogw"
 )
 
 func NewEdgeAutoGwServerCommand() *cobra.Command {
@@ -46,7 +46,7 @@ func NewEdgeAutoGwServerCommand() *cobra.Command {
 
 			klog.Infof("Version: %+v", version.Get())
 			if err = Run(serverCfg); err != nil {
-				klog.Exit("run edgemesh-server failed: %v", err)
+				klog.Exit("run edge-auto-gw failed: %v", err)
 			}
 		},
 	}
@@ -100,7 +100,7 @@ func Run(cfg *config.EdgeAutoGwConfig) error {
 	return nil
 }
 
-// registerModules register all the modules started in edgemesh-server
+// registerModules register all the modules started in edge-auto-gw
 func registerModules(c *config.EdgeAutoGwConfig, ifm *informers.Manager) []error {
 	var errs []error
 	if err := autogw.Register(c.Modules.EdgeAutoConfig, ifm); err != nil {

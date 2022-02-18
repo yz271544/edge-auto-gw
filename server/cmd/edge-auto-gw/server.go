@@ -7,7 +7,7 @@ import (
 
 	"k8s.io/component-base/logs"
 
-	"github.com/yz271544/edge-auto-gw/cloud/server/cmd/edge-auto-gw/app"
+	"github.com/yz271544/edge-auto-gw/server/cmd/edge-auto-gw/app"
 )
 
 func main() {

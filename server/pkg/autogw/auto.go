@@ -1,7 +1,6 @@
-package tunnel
+package autogw
 
 import (
-	"context"
 	"time"
 
 	"k8s.io/klog/v2"

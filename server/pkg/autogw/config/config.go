@@ -9,6 +9,6 @@ type EdgeAutoGwConfig struct {
 
 func NewEdgeAutoGwConfig() *EdgeAutoGwConfig {
 	return &EdgeAutoGwConfig{
-		Enable:    true
+		Enable: true,
 	}
 }

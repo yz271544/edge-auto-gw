@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"path"
 
+	"github.com/kubeedge/kubeedge/pkg/util/validation"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 	cliflag "k8s.io/component-base/cli/flag"
 
-	"github.com/kubeedge/edgemesh/agent/cmd/edgemesh-agent/app/config"
-	meshConstants "github.com/kubeedge/edgemesh/common/constants"
-	"github.com/kubeedge/kubeedge/common/constants"
-	"github.com/kubeedge/kubeedge/pkg/util/validation"
+	"github.com/yz271544/edge-auto-gw/server/cmd/edge-auto-gw/app/config"
+	autoConstants "github.com/yz271544/edge-auto-gw/server/common/constants"
 )
 
 type EdgeAutoGwOptions struct {
@@ -19,7 +18,7 @@ type EdgeAutoGwOptions struct {
 
 func NewEdgeAutoGwOptions() *EdgeAutoGwOptions {
 	return &EdgeAutoGwOptions{
-		ConfigFile: path.Join(constants.DefaultConfigDir, meshConstants.EdgeMeshAgentConfigFileName),
+		ConfigFile: path.Join(autoConstants.DefaultConfigDir, autoConstants.EdgeAutoGwConfigFileName),
 	}
 }
 
@@ -38,9 +37,9 @@ func (o *EdgeAutoGwOptions) Validate() []error {
 	return errs
 }
 
-// Config generates *config.EdgeMeshAgentConfig
-func (o *EdgeAutoGwOptions) Config() (*config.EdgeMeshAgentConfig, error) {
-	cfg := config.NewEdgeMeshAgentConfig()
+// Config generates *config.EdgeAutoGwConfig
+func (o *EdgeAutoGwOptions) Config() (*config.EdgeAutoGwConfig, error) {
+	cfg := config.NewEdgeAutoGwConfig()
 	if err := cfg.Parse(o.ConfigFile); err != nil {
 		return nil, err
 	}

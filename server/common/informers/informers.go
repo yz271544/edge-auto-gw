@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/kubeedge/kubeedge/pkg/apis/componentconfig/cloudcore/v1alpha1"
 	istio "istio.io/client-go/pkg/clientset/versioned"
 	istioinformers "istio.io/client-go/pkg/informers/externalversions"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -13,8 +14,6 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/klog/v2"
-
-	"github.com/kubeedge/kubeedge/pkg/apis/componentconfig/cloudcore/v1alpha1"
 )
 
 type syncedFunc func()
