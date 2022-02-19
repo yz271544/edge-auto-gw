@@ -14,5 +14,5 @@ const (
 	// env
 	MY_NODE_NAME = "MY_NODE_NAME"
 
-	DefaultConfigDir = "/etc/edgeautogw/config/"
+	DefaultConfigDir = "/etc/kubeedge/config/"
 )
