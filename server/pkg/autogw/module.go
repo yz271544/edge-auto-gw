@@ -9,6 +9,7 @@ import (
 	"github.com/yz271544/edge-auto-gw/server/common/modules"
 	"github.com/yz271544/edge-auto-gw/server/pkg/autogw/config"
 	"github.com/yz271544/edge-auto-gw/server/pkg/autogw/controller"
+	"github.com/yz271544/edge-auto-gw/server/pkg/autogw/manager"
 )
 
 // EdgeAutoGw is a edge ingress gateway
@@ -24,6 +25,9 @@ func newEdgeAutoGw(c *config.EdgeAutoGwConfig, ifm *informers.Manager) (eag *Edg
 
 	// new controller
 	controller.Init(ifm, c)
+
+	// // new gateway manager
+	manager.NewAutoGwManager(c, ifm)
 
 	return eag, nil
 }

@@ -6,6 +6,7 @@ require (
 	github.com/kubeedge/beehive v0.0.0
 	github.com/kubeedge/kubeedge v1.6.2
 	github.com/spf13/cobra v1.2.1
+	istio.io/api v0.0.0-20210131044048-bfeb10697307
 	istio.io/client-go v0.0.0-20210218000043-b598dd019200
 	k8s.io/api v0.21.1
 	k8s.io/apimachinery v0.21.1

@@ -1,0 +1,28 @@
+FROM golang:1.16 AS builder
+
+ARG GO_LDFLAGS
+
+# set goproxy
+
+# using the go module
+RUN go env -w GO111MODULE=on
+
+RUN set -eux && sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list && \
+    sed -i 's/security.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
+# source
+RUN apt-get update && apt-get install -y gcc && \
+    apt-get install -y binutils-gold
+
+WORKDIR /code
+COPY . .
+
+RUN CGO_ENABLED=1 go build -v -o /usr/local/bin/edge-auto-gw -ldflags "$GO_LDFLAGS -w -s" \
+./server/cmd/edge-auto-gw/server.go
+
+
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.4
+
+COPY --from=builder /usr/local/bin/edge-auto-gw /usr/local/bin/edge-auto-gw
+
+ENTRYPOINT ["edge-auto-gw"]
+

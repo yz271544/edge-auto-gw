@@ -1,0 +1,37 @@
+FROM golang:1.16-alpine3.13 AS builder
+
+ARG GO_LDFLAGS
+ARG TARGETARCH
+
+# set goproxy
+# using the go module
+RUN go env -w GO111MODULE=on
+ENV GOFLAGS="-mod=vendor"
+ENV GOPROXY=https://yz271544:UbFWoA20KLRShpM@goproxy.io,direct
+
+RUN set -eux && sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories
+# source
+RUN apk update && apk add gcc && \
+    apk --no-cache add build-base linux-headers binutils-gold
+
+# Build Delve
+RUN go get -v github.com/go-delve/delve/cmd/dlv@v1.7.2
+
+WORKDIR /code
+COPY . .
+
+RUN GOOS=linux GOARCH=$TARGETARCH go build -v -o /usr/local/bin/edge-auto-gw \
+-gcflags="all=-N -l" \
+-ldflags "$GO_LDFLAGS" \
+./server/cmd/edge-auto-gw/server.go
+
+
+FROM alpine:3.13
+
+RUN apk update
+
+COPY --from=builder /go/bin/dlv /usr/local/bin/dlv
+COPY --from=builder /usr/local/bin/edge-auto-gw /usr/local/bin/edge-auto-gw
+
+ENTRYPOINT ["dlv", "--listen=:40000", "--headless=true", "--api-version=2", "--accept-multiclient", "exec", "/usr/local/bin/edge-auto-gw"]
+

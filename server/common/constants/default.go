@@ -8,6 +8,9 @@ const (
 
 	SecretNamespace = EdgeAutoGwNamespace
 
+	SelectorForEdgeMeshGatewayKey   = "edgemesh"
+	SelectorForEdgeMeshGatewayValue = "edgemesh-gateway"
+
 	// env
 	MY_NODE_NAME = "MY_NODE_NAME"
 
