@@ -89,8 +89,15 @@ func (mgr *AutoGwManager) addAtGateway(at *v1.Service) {
 	}
 
 	atLables := at.GetLabels()
+	if atLables == nil {
+		klog.Infof("atLables is Nil")
+	}
+	for key, value := range atLables {
+		klog.Infof("LATBLES: %s ---> %s", key, value)
+	}
 
 	isExposeGateway, gatewayProtocol, svcPort, gatewayPort := extractGatewayConfig(atLables)
+	klog.Infof("isExposeGateway:%v, gatewayProtocol:%s, svcPort:%d, gatewayPort:%d", isExposeGateway, gatewayProtocol, svcPort, gatewayPort)
 
 	if isExposeGateway {
 		ns := at.GetNamespace()
@@ -148,9 +155,15 @@ func (mgr *AutoGwManager) updateAtGateway(at *v1.Service) {
 	}
 
 	atLables := at.GetLabels()
+	if atLables == nil {
+		klog.Infof("atLables is Nil")
+	}
+	for key, value := range atLables {
+		klog.Infof("LATBLES: %s ---> %s", key, value)
+	}
 
 	isExposeGateway, gatewayProtocol, svcPort, gatewayPort := extractGatewayConfig(atLables)
-
+	klog.Infof("isExposeGateway:%v, gatewayProtocol:%s, svcPort:%d, gatewayPort:%d", isExposeGateway, gatewayProtocol, svcPort, gatewayPort)
 	if isExposeGateway {
 		ns := at.GetNamespace()
 		nm := at.GetName()
