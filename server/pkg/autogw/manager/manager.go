@@ -95,7 +95,7 @@ func (mgr *AutoGwManager) addAtGateway(at *v1.Service) {
 
 		dr := GenerateDestinationRule(nm, ns)
 
-		vs := GenerateVirtualService(nm, ns, svcPort)
+		vs := GenerateVirtualService(nm, ns, gatewayProtocol, svcPort)
 
 		gw := GenerateGateway(nm, ns, gatewayProtocol, gatewayPort)
 
@@ -117,8 +117,8 @@ func (mgr *AutoGwManager) addAtGateway(at *v1.Service) {
 			klog.Errorf("create gateway rule failed: %v", err)
 			return
 		}
+		klog.Infof("have created the gateway vs dr %s", nm)
 	}
-
 }
 
 // updateGateway update a gateway server
@@ -142,7 +142,7 @@ func (mgr *AutoGwManager) updateAtGateway(at *v1.Service) {
 
 		dr := GenerateDestinationRule(nm, ns)
 
-		vs := GenerateVirtualService(nm, ns, svcPort)
+		vs := GenerateVirtualService(nm, ns, gatewayProtocol, svcPort)
 
 		gw := GenerateGateway(nm, ns, gatewayProtocol, gatewayPort)
 
@@ -164,6 +164,7 @@ func (mgr *AutoGwManager) updateAtGateway(at *v1.Service) {
 			klog.Errorf("update gateway rule failed: %v", err)
 			return
 		}
+		klog.Infof("have updated the gateway vs dr %s", nm)
 	}
 }
 
@@ -200,6 +201,8 @@ func (mgr *AutoGwManager) deleteAtGateway(at *v1.Service) {
 		klog.Errorf("delete gateway rule failed: %v", err)
 		return
 	}
+
+	klog.Infof("have deleted the gateway vs dr %s", nm)
 }
 
 // extractGatewayConfig Extract the Gateway Protocol and Port
@@ -283,58 +286,77 @@ func GenerateDestinationRule(name, namespace string) (dr *istioapi.DestinationRu
 	return
 }
 
-func GenerateVirtualService(name, namespace string, svcPort uint32) (vs *istioapi.VirtualService) {
-	vs = &istioapi.VirtualService{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "VirtualService",
-			APIVersion: "networking.istio.io/v1alpha3",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-		Spec: networkingv1alpha3.VirtualService{
-			Hosts:    []string{"*"},
-			Gateways: []string{name},
-			Http: []*networkingv1alpha3.HTTPRoute{
-				&networkingv1alpha3.HTTPRoute{
-					Match: []*networkingv1alpha3.HTTPMatchRequest{
-						&networkingv1alpha3.HTTPMatchRequest{
-							Uri: &networkingv1alpha3.StringMatch{
-								MatchType: &networkingv1alpha3.StringMatch_Prefix{
-									Prefix: "/",
-								},
-							},
-						},
-					},
-					Route: []*networkingv1alpha3.HTTPRouteDestination{
-						&networkingv1alpha3.HTTPRouteDestination{
-							Destination: &networkingv1alpha3.Destination{
-								Host: name,
-								Port: &networkingv1alpha3.PortSelector{
-									Number: svcPort,
+func GenerateVirtualService(name, namespace, gatewayProtocol string, svcPort uint32) (vs *istioapi.VirtualService) {
+
+	if gatewayProtocol == tcpProtocol {
+		vs = &istioapi.VirtualService{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "VirtualService",
+				APIVersion: "networking.istio.io/v1alpha3",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			},
+			Spec: networkingv1alpha3.VirtualService{
+				Hosts:    []string{"*"},
+				Gateways: []string{name},
+				Tcp: []*networkingv1alpha3.TCPRoute{
+					&networkingv1alpha3.TCPRoute{
+						Route: []*networkingv1alpha3.RouteDestination{
+							&networkingv1alpha3.RouteDestination{
+								Destination: &networkingv1alpha3.Destination{
+									Host: name,
+									Port: &networkingv1alpha3.PortSelector{
+										Number: svcPort,
+									},
 								},
 							},
 						},
 					},
 				},
 			},
-			Tcp: []*networkingv1alpha3.TCPRoute{
-				&networkingv1alpha3.TCPRoute{
-					Route: []*networkingv1alpha3.RouteDestination{
-						&networkingv1alpha3.RouteDestination{
-							Destination: &networkingv1alpha3.Destination{
-								Host: name,
-								Port: &networkingv1alpha3.PortSelector{
-									Number: svcPort,
+		}
+	} else if gatewayProtocol == httpProtocol {
+		vs = &istioapi.VirtualService{
+			TypeMeta: metav1.TypeMeta{
+				Kind:       "VirtualService",
+				APIVersion: "networking.istio.io/v1alpha3",
+			},
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      name,
+				Namespace: namespace,
+			},
+			Spec: networkingv1alpha3.VirtualService{
+				Hosts:    []string{"*"},
+				Gateways: []string{name},
+				Http: []*networkingv1alpha3.HTTPRoute{
+					&networkingv1alpha3.HTTPRoute{
+						Match: []*networkingv1alpha3.HTTPMatchRequest{
+							&networkingv1alpha3.HTTPMatchRequest{
+								Uri: &networkingv1alpha3.StringMatch{
+									MatchType: &networkingv1alpha3.StringMatch_Prefix{
+										Prefix: "/",
+									},
+								},
+							},
+						},
+						Route: []*networkingv1alpha3.HTTPRouteDestination{
+							&networkingv1alpha3.HTTPRouteDestination{
+								Destination: &networkingv1alpha3.Destination{
+									Host: name,
+									Port: &networkingv1alpha3.PortSelector{
+										Number: svcPort,
+									},
 								},
 							},
 						},
 					},
 				},
 			},
-			Tls: []*networkingv1alpha3.TLSRoute{},
-		},
+		}
+	} else {
+		return
 	}
 	return
 }
