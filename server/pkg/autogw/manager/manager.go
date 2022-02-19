@@ -305,7 +305,6 @@ func extractGatewayConfig(atLables map[string]string) (isExposeGateway bool, gat
 		}
 		if port >= minGatewayPort && port <= maxGatewayPort {
 			gatewayPort = uint32(port)
-			return
 		} else {
 			klog.V(4).Infof("gatewayPort %d is invalid scope", port)
 		}
