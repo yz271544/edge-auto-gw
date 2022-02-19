@@ -99,20 +99,32 @@ func (mgr *AutoGwManager) addAtGateway(at *v1.Service) {
 
 		gw := GenerateGateway(nm, ns, gatewayProtocol, gatewayPort)
 
-		clent := mgr.ifm.GetIstioClient().NetworkingV1alpha3()
+		if dr == nil {
+			klog.Errorf("auto add %s.%s failed, dr is nil", ns, nm)
+			return
+		}
+		if vs == nil {
+			klog.Errorf("auto add %s.%s failed, vs is nil", ns, nm)
+			return
+		}
+		if gw == nil {
+			klog.Errorf("auto add %s.%s failed, gw is nil", ns, nm)
+			return
+		}
+		client := mgr.ifm.GetIstioClient().NetworkingV1alpha3()
 
-		_, err = clent.DestinationRules(ns).Create(context.Background(), dr, metav1.CreateOptions{})
+		_, err = client.DestinationRules(ns).Create(context.Background(), dr, metav1.CreateOptions{})
 		if err != nil {
 			klog.Errorf("create destination rule failed: %v", err)
 			return
 		}
 
-		_, err = clent.VirtualServices(ns).Create(context.Background(), vs, metav1.CreateOptions{})
+		_, err = client.VirtualServices(ns).Create(context.Background(), vs, metav1.CreateOptions{})
 		if err != nil {
 			klog.Errorf("create virtualservice rule failed: %v", err)
 			return
 		}
-		_, err = clent.Gateways(ns).Create(context.Background(), gw, metav1.CreateOptions{})
+		_, err = client.Gateways(ns).Create(context.Background(), gw, metav1.CreateOptions{})
 		if err != nil {
 			klog.Errorf("create gateway rule failed: %v", err)
 			return
@@ -145,21 +157,32 @@ func (mgr *AutoGwManager) updateAtGateway(at *v1.Service) {
 		vs := GenerateVirtualService(nm, ns, gatewayProtocol, svcPort)
 
 		gw := GenerateGateway(nm, ns, gatewayProtocol, gatewayPort)
+		if dr == nil {
+			klog.Errorf("auto update %s.%s failed, dr is nil", ns, nm)
+			return
+		}
+		if vs == nil {
+			klog.Errorf("auto update %s.%s failed, vs is nil", ns, nm)
+			return
+		}
+		if gw == nil {
+			klog.Errorf("auto update %s.%s failed, gw is nil", ns, nm)
+			return
+		}
+		client := mgr.ifm.GetIstioClient().NetworkingV1alpha3()
 
-		clent := mgr.ifm.GetIstioClient().NetworkingV1alpha3()
-
-		_, err = clent.DestinationRules(ns).Update(context.Background(), dr, metav1.UpdateOptions{})
+		_, err = client.DestinationRules(ns).Update(context.Background(), dr, metav1.UpdateOptions{})
 		if err != nil {
 			klog.Errorf("update destination rule failed: %v", err)
 			return
 		}
 
-		_, err = clent.VirtualServices(ns).Update(context.Background(), vs, metav1.UpdateOptions{})
+		_, err = client.VirtualServices(ns).Update(context.Background(), vs, metav1.UpdateOptions{})
 		if err != nil {
 			klog.Errorf("update virtualservice rule failed: %v", err)
 			return
 		}
-		_, err = clent.Gateways(ns).Update(context.Background(), gw, metav1.UpdateOptions{})
+		_, err = client.Gateways(ns).Update(context.Background(), gw, metav1.UpdateOptions{})
 		if err != nil {
 			klog.Errorf("update gateway rule failed: %v", err)
 			return
@@ -179,27 +202,45 @@ func (mgr *AutoGwManager) deleteAtGateway(at *v1.Service) {
 		return
 	}
 
-	clent := mgr.ifm.GetIstioClient().NetworkingV1alpha3()
+	client := mgr.ifm.GetIstioClient().NetworkingV1alpha3()
 
 	ns := at.GetNamespace()
 	nm := at.GetName()
 
-	err = clent.DestinationRules(ns).Delete(context.Background(), nm, metav1.DeleteOptions{})
+	dr, err := client.DestinationRules(ns).Get(context.Background(), nm, metav1.GetOptions{})
 	if err != nil {
-		klog.Errorf("delete destination rule failed: %v", err)
-		return
+		klog.Errorf("Get the DestinationRules:%s.%s failed", ns, nm)
+	}
+	if dr != nil {
+		err = client.DestinationRules(ns).Delete(context.Background(), nm, metav1.DeleteOptions{})
+		if err != nil {
+			klog.Errorf("delete destinationrule failed: %v", err)
+			return
+		}
 	}
 
-	err = clent.VirtualServices(ns).Delete(context.Background(), nm, metav1.DeleteOptions{})
+	vs, err := client.VirtualServices(ns).Get(context.Background(), nm, metav1.GetOptions{})
 	if err != nil {
-		klog.Errorf("delete virtualservice rule failed: %v", err)
-		return
+		klog.Errorf("Get the VirtualServices:%s.%s failed", ns, nm)
+	}
+	if vs != nil {
+		err = client.VirtualServices(ns).Delete(context.Background(), nm, metav1.DeleteOptions{})
+		if err != nil {
+			klog.Errorf("delete virtualservice failed: %v", err)
+			return
+		}
 	}
 
-	err = clent.Gateways(ns).Delete(context.Background(), nm, metav1.DeleteOptions{})
+	gw, err := client.Gateways(ns).Get(context.Background(), nm, metav1.GetOptions{})
 	if err != nil {
-		klog.Errorf("delete gateway rule failed: %v", err)
-		return
+		klog.Errorf("Get the Gateways:%s.%s failed", ns, nm)
+	}
+	if gw != nil {
+		err = client.Gateways(ns).Delete(context.Background(), nm, metav1.DeleteOptions{})
+		if err != nil {
+			klog.Errorf("delete gateway failed: %v", err)
+			return
+		}
 	}
 
 	klog.Infof("have deleted the gateway vs dr %s", nm)
