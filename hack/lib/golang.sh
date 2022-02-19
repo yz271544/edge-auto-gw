@@ -100,7 +100,7 @@ edge_auto_gw::version::ldflags() {
     local val=${2}
     # If you update these, also update the list pkg/version/def.bzl.
     ldflags+=(
-      "-X ${KUBEEDGE_GO_PACKAGE}/pkg/version.${key}=${val}"
+      "-X ${EDGE_AUTO_GW_GO_PACKAGE}/pkg/version.${key}=${val}"
     )
   }
 
