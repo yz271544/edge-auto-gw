@@ -48,6 +48,7 @@ func NewAutoGwManager(c *config.EdgeAutoGwConfig, ifm *informers.Manager) *AutoG
 }
 
 func (mgr *AutoGwManager) atAdd(obj interface{}) {
+	klog.V(4).Info("trigger atAdd")
 	at, ok := obj.(*v1.Service)
 	if !ok {
 		klog.Errorf("invalid type %v", obj)
@@ -57,6 +58,7 @@ func (mgr *AutoGwManager) atAdd(obj interface{}) {
 }
 
 func (mgr *AutoGwManager) atUpdate(oldObj, newObj interface{}) {
+	klog.V(4).Info("trigger atUpdate")
 	at, ok := newObj.(*v1.Service)
 	if !ok {
 		klog.Errorf("invalid type %v", newObj)
@@ -66,6 +68,7 @@ func (mgr *AutoGwManager) atUpdate(oldObj, newObj interface{}) {
 }
 
 func (mgr *AutoGwManager) atDelete(obj interface{}) {
+	klog.V(4).Info("trigger atDelete")
 	at, ok := obj.(*v1.Service)
 	if !ok {
 		klog.Errorf("invalid type %v", obj)
