@@ -48,7 +48,6 @@ func NewAutoGwManager(c *config.EdgeAutoGwConfig, ifm *informers.Manager) *AutoG
 }
 
 func (mgr *AutoGwManager) atAdd(obj interface{}) {
-	klog.V(4).Info("trigger atAdd")
 	at, ok := obj.(*v1.Service)
 	if !ok {
 		klog.Errorf("invalid type %v", obj)
@@ -58,7 +57,6 @@ func (mgr *AutoGwManager) atAdd(obj interface{}) {
 }
 
 func (mgr *AutoGwManager) atUpdate(oldObj, newObj interface{}) {
-	klog.V(4).Info("trigger atUpdate")
 	at, ok := newObj.(*v1.Service)
 	if !ok {
 		klog.Errorf("invalid type %v", newObj)
@@ -68,7 +66,6 @@ func (mgr *AutoGwManager) atUpdate(oldObj, newObj interface{}) {
 }
 
 func (mgr *AutoGwManager) atDelete(obj interface{}) {
-	klog.V(4).Info("trigger atDelete")
 	at, ok := obj.(*v1.Service)
 	if !ok {
 		klog.Errorf("invalid type %v", obj)
@@ -89,12 +86,6 @@ func (mgr *AutoGwManager) addAtGateway(at *v1.Service) {
 	}
 
 	atLables := at.GetLabels()
-	if atLables == nil {
-		klog.Infof("atLables is Nil")
-	}
-	for key, value := range atLables {
-		klog.Infof("LATBLES: %s ---> %s", key, value)
-	}
 
 	isExposeGateway, gatewayProtocol, svcPort, gatewayPort := extractGatewayConfig(atLables)
 	klog.Infof("isExposeGateway:%v, gatewayProtocol:%s, svcPort:%d, gatewayPort:%d", isExposeGateway, gatewayProtocol, svcPort, gatewayPort)
@@ -155,12 +146,6 @@ func (mgr *AutoGwManager) updateAtGateway(at *v1.Service) {
 	}
 
 	atLables := at.GetLabels()
-	if atLables == nil {
-		klog.Infof("atLables is Nil")
-	}
-	for key, value := range atLables {
-		klog.Infof("LATBLES: %s ---> %s", key, value)
-	}
 
 	isExposeGateway, gatewayProtocol, svcPort, gatewayPort := extractGatewayConfig(atLables)
 	klog.Infof("isExposeGateway:%v, gatewayProtocol:%s, svcPort:%d, gatewayPort:%d", isExposeGateway, gatewayProtocol, svcPort, gatewayPort)
