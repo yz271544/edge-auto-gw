@@ -309,11 +309,9 @@ func extractGatewayConfig(atLables map[string]string) (isExposeGateway bool, gat
 			klog.V(4).Infof("gatewayPort %d is invalid scope", port)
 		}
 		isExposeGateway = true
-	} else {
-		klog.V(4).Infof("gateway-port %s is invalid format: SvcPort-GatewayPort", edgemeshGatewayPort)
-		return false, "", 0, 0
+		return
 	}
-
+	klog.V(4).Infof("gateway-port %s is invalid format: SvcPort-GatewayPort", edgemeshGatewayPort)
 	return false, "", 0, 0
 }
 
