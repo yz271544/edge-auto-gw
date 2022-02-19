@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: kubeedge
+    kubeedge: edge-auto-gw
+  name: edge-auto-gw
+  namespace: kubeedge
+spec:
+  selector:
+    matchLabels:
+      k8s-app: kubeedge
+      kubeedge: edge-auto-gw
+  template:
+    metadata:
+      labels:
+        k8s-app: kubeedge
+        kubeedge: edge-auto-gw
+    spec:
+#     use label to selector node
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: node-role.kubernetes.io/worker
+                    operator: Exists
+      containers:
+      - name: edge-auto-gw
+        image: docker.gridsumdissector.com/kubeedge/edge-auto-gw:v0.1.0
+        resources:
+          limits:
+            cpu: 200m
+            memory: 1Gi
+          requests:
+            cpu: 100m
+            memory: 512Mi
+        volumeMounts:
+          - name: conf
+            mountPath: /etc/kubeedge/config
+      restartPolicy: Always
+      serviceAccountName: edge-auto-gw
+      volumes:
+        - name: conf
+          configMap:
+            name: edge-auto-gw-cfg
+        - name: ca-server-token
+          secret:
+            secretName: tokensecret

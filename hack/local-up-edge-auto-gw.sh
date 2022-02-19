@@ -249,15 +249,6 @@ spec:
       - name: edge-auto-gw
         image: ${SERVER_IMAGE}
         imagePullPolicy: IfNotPresent
-        env:
-          - name: MY_NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
-        ports:
-        - containerPort: 20004
-          name: relay
-          protocol: TCP
         resources:
           limits:
             cpu: 200m
@@ -268,20 +259,12 @@ spec:
         volumeMounts:
           - name: conf
             mountPath: /etc/kubeedge/config
-          - name: edge-auto-gw
-            mountPath: /etc/kubeedge/edge-auto-gw
-          - name: ca-server-token
-            mountPath: /etc/kubeedge/cert
       restartPolicy: Always
       serviceAccountName: edge-auto-gw
       volumes:
         - name: conf
           configMap:
-            name: edge-auto-gw
-        - name: edge-auto-gw
-          hostPath:
-            path: /etc/kubeedge/edge-auto-gw
-            type: DirectoryOrCreate
+            name: edge-auto-gw-cfg
         - name: ca-server-token
           secret:
             secretName: tokensecret

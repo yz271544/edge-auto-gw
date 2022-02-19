@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: edge-auto-gw
+  labels:
+    k8s-app: kubeedge
+    kubeedge: edge-auto-gw
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edge-auto-gw
+subjects:
+  - kind: ServiceAccount
+    name: edge-auto-gw
+    namespace: kubeedge
