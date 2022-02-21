@@ -246,7 +246,7 @@ func GenerateDestinationRule(name, namespace string) (dr *istioapi.DestinationRu
 	dr = &istioapi.DestinationRule{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "DestinationRule",
-			APIVersion: "networking.istio.io/v1alpha3",
+			APIVersion: istioapi.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
@@ -266,102 +266,101 @@ func GenerateDestinationRule(name, namespace string) (dr *istioapi.DestinationRu
 	return
 }
 
-func GenerateVirtualService(name, namespace, gatewayProtocol string, svcPort uint32) (vs *istioapi.VirtualService) {
+func GenerateVirtualService(name, namespace string, gatewayProtocols []string, svcPorts []uint32) (vs *istioapi.VirtualService) {
 
-	if gatewayProtocol == tcpProtocol {
-		vs = &istioapi.VirtualService{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "VirtualService",
-				APIVersion: "networking.istio.io/v1alpha3",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: namespace,
-			},
-			Spec: networkingv1alpha3.VirtualService{
-				Hosts:    []string{"*"},
-				Gateways: []string{name},
-				Tcp: []*networkingv1alpha3.TCPRoute{
-					&networkingv1alpha3.TCPRoute{
-						Route: []*networkingv1alpha3.RouteDestination{
-							&networkingv1alpha3.RouteDestination{
-								Destination: &networkingv1alpha3.Destination{
-									Host: name,
-									Port: &networkingv1alpha3.PortSelector{
-										Number: svcPort,
-									},
-								},
+	tcpRoutes := make([]*networkingv1alpha3.TCPRoute, 0)
+	httpRoutes := make([]*networkingv1alpha3.HTTPRoute, 0)
+
+	for i, gatewayProtocol := range gatewayProtocols {
+		if gatewayProtocol == tcpProtocol {
+			tcpRoute := &networkingv1alpha3.TCPRoute{
+				Route: []*networkingv1alpha3.RouteDestination{
+					{
+						Destination: &networkingv1alpha3.Destination{
+							Host: name,
+							Port: &networkingv1alpha3.PortSelector{
+								Number: svcPorts[i],
 							},
 						},
 					},
 				},
-			},
-		}
-	} else if gatewayProtocol == httpProtocol {
-		vs = &istioapi.VirtualService{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       "VirtualService",
-				APIVersion: "networking.istio.io/v1alpha3",
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      name,
-				Namespace: namespace,
-			},
-			Spec: networkingv1alpha3.VirtualService{
-				Hosts:    []string{"*"},
-				Gateways: []string{name},
-				Http: []*networkingv1alpha3.HTTPRoute{
-					&networkingv1alpha3.HTTPRoute{
-						Match: []*networkingv1alpha3.HTTPMatchRequest{
-							&networkingv1alpha3.HTTPMatchRequest{
-								Uri: &networkingv1alpha3.StringMatch{
-									MatchType: &networkingv1alpha3.StringMatch_Prefix{
-										Prefix: "/",
-									},
-								},
-							},
-						},
-						Route: []*networkingv1alpha3.HTTPRouteDestination{
-							&networkingv1alpha3.HTTPRouteDestination{
-								Destination: &networkingv1alpha3.Destination{
-									Host: name,
-									Port: &networkingv1alpha3.PortSelector{
-										Number: svcPort,
-									},
-								},
+			}
+			tcpRoutes = append(tcpRoutes, tcpRoute)
+		} else if gatewayProtocol == httpProtocol {
+			httpRoute := &networkingv1alpha3.HTTPRoute{
+				Match: []*networkingv1alpha3.HTTPMatchRequest{
+					{
+						Uri: &networkingv1alpha3.StringMatch{
+							MatchType: &networkingv1alpha3.StringMatch_Prefix{
+								Prefix: "/",
 							},
 						},
 					},
 				},
-			},
+				Route: []*networkingv1alpha3.HTTPRouteDestination{
+					{
+						Destination: &networkingv1alpha3.Destination{
+							Host: name,
+							Port: &networkingv1alpha3.PortSelector{
+								Number: svcPorts[i],
+							},
+						},
+					},
+				},
+			}
+			httpRoutes = append(httpRoutes, httpRoute)
 		}
-	} else {
-		return
 	}
+
+	vs = &istioapi.VirtualService{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "VirtualService",
+			APIVersion: istioapi.SchemeGroupVersion.String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+		Spec: networkingv1alpha3.VirtualService{
+			Hosts:    []string{"*"},
+			Gateways: []string{name},
+			Tcp:      tcpRoutes,
+			Http:     httpRoutes,
+		},
+	}
+
 	return
 }
 
-func GenerateGateway(name, namespace, gatewayProtocol string, gatewayPort uint32) (gw *istioapi.Gateway) {
+func GenerateGateway(name, namespace string, gatewayProtocols []string, gatewayPorts []uint32) (gw *istioapi.Gateway) {
+
+	servers := make([]*networkingv1alpha3.Server, 0)
+
+	for i, gatewayProtocol := range gatewayProtocols {
+		server := &networkingv1alpha3.Server{
+			Hosts: []string{"*"},
+			Port: &networkingv1alpha3.Port{
+				Number:   gatewayPorts[i],
+				Protocol: gatewayProtocol,
+				Name:     strings.ToLower(gatewayProtocol) + "-0",
+			},
+		}
+
+		servers = append(servers, server)
+
+	}
+
 	gw = &istioapi.Gateway{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Gateway",
-			APIVersion: "networking.istio.io/v1alpha3",
+			APIVersion: istioapi.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
 		},
 		Spec: networkingv1alpha3.Gateway{
-			Servers: []*networkingv1alpha3.Server{
-				&networkingv1alpha3.Server{
-					Hosts: []string{"*"},
-					Port: &networkingv1alpha3.Port{
-						Number:   gatewayPort,
-						Protocol: gatewayProtocol,
-						Name:     strings.ToLower(gatewayProtocol) + "-0",
-					},
-				},
-			},
+			Servers: servers,
 			Selector: map[string]string{
 				constants.SelectorForEdgeMeshGatewayKey: constants.SelectorForEdgeMeshGatewayValue,
 			},

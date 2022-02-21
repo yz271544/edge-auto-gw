@@ -18,25 +18,27 @@ package manager
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/spf13/cast"
 	"github.com/yz271544/edge-auto-gw/server/pkg/autogw/controller"
-	"strings"
 )
 
 const GatewayPortSeparate = "-"
+const GroupSparate = "."
 
 type LabelAnnotation struct {
-	ServicePort     uint32
-	ServiceProtocol string
-	GatewayPort     uint32
-	GateWayProtocol string
+	ServicePort     []uint32
+	ServiceProtocol []string
+	GatewayPort     []uint32
+	GateWayProtocol []string
 }
 
 type Labels map[string]string
 
 // extractLabels return k8s service label information.
 func (l Labels) extractLabels() (*LabelAnnotation, error) {
-	gatewayProtocal, ok := l[controller.LabelEdgemeshGatewayConfig]
+	gatewayProtocols, ok := l[controller.LabelEdgemeshGatewayConfig]
 	if !ok {
 		return nil, fmt.Errorf("not have %s label in the service", controller.LabelEdgemeshGatewayConfig)
 	}
@@ -45,25 +47,54 @@ func (l Labels) extractLabels() (*LabelAnnotation, error) {
 		return nil, fmt.Errorf("not have %s label in the service", controller.LabelEdgemeshGatewayPort)
 	}
 
-	ports := strings.Split(gatewayPorts, GatewayPortSeparate)
-	if len(ports) != 2 {
-		return nil, fmt.Errorf("%s must containes from servicePort to gatewayPort", controller.LabelEdgemeshGatewayPort)
+	gatewayProtocolGroups := strings.Split(gatewayProtocols, GroupSparate)
+	if len(gatewayProtocolGroups) == 0 {
+		return nil, fmt.Errorf("not config the protocol values, example:%s", "TCP.TCP or TCP.HTTP")
+	}
+	gatewayPortGroups := strings.Split(gatewayPorts, GroupSparate)
+	if len(gatewayPortGroups) == 0 {
+		return nil, fmt.Errorf("not config the port values, example:%s", "TCP.TCP or TCP.HTTP")
 	}
 
-	servicePort := cast.ToUint32(ports[0])
-	if ok := ValidateServicePort(servicePort); !ok {
-		return nil, fmt.Errorf("service port must >0 and < 65535", servicePort)
+	if len(gatewayProtocolGroups) != len(gatewayPortGroups) {
+		return nil, fmt.Errorf("config error: protocol groups [%d] not equals with port groups [%d]", len(gatewayProtocolGroups), len(gatewayPortGroups))
 	}
 
-	gatewayPort := cast.ToUint32(ports[1])
-	if ok := ValidateGatewayPort(gatewayPort); !ok {
-		return nil, fmt.Errorf("gateway port must > 30000 and < 65535", gatewayPort)
+	servicePortBox := make([]uint32, 0)
+	gatewayPortBox := make([]uint32, 0)
+	ServiceProtocolBox := make([]string, 0)
+	gatewayProtocolBox := make([]string, 0)
+
+	for _, gatewayProtocol := range gatewayProtocolGroups {
+
+		gatewayProtocolBox = append(gatewayProtocolBox, strings.ToUpper(gatewayProtocol))
+		ServiceProtocolBox = append(ServiceProtocolBox, strings.ToLower(gatewayProtocol))
+
+		ports := strings.Split(gatewayPorts, GatewayPortSeparate)
+		if len(ports) != 2 {
+			return nil, fmt.Errorf("%s must containes from servicePort to gatewayPort", controller.LabelEdgemeshGatewayPort)
+		}
+
+		servicePort := cast.ToUint32(ports[0])
+		if ok := ValidateServicePort(servicePort); !ok {
+			return nil, fmt.Errorf("service port must >0 and < 65535", servicePort)
+		}
+
+		gatewayPort := cast.ToUint32(ports[1])
+		if ok := ValidateGatewayPort(gatewayPort); !ok {
+			return nil, fmt.Errorf("gateway port must > 30000 and < 65535", gatewayPort)
+		}
+
+		servicePortBox = append(servicePortBox, servicePort)
+		gatewayPortBox = append(gatewayPortBox, gatewayPort)
+
 	}
 
 	return &LabelAnnotation{
-		ServicePort:     servicePort,
-		GatewayPort:     gatewayPort,
-		GateWayProtocol: gatewayProtocal,
+		ServicePort:     servicePortBox,
+		GatewayPort:     gatewayPortBox,
+		ServiceProtocol: ServiceProtocolBox,
+		GateWayProtocol: gatewayProtocolBox,
 	}, nil
 }
 
