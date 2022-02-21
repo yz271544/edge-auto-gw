@@ -20,6 +20,8 @@ import (
 	"fmt"
 	"strings"
 
+	"k8s.io/klog/v2"
+
 	"github.com/spf13/cast"
 	"github.com/yz271544/edge-auto-gw/server/pkg/autogw/controller"
 )
@@ -42,10 +44,12 @@ func (l Labels) extractLabels() (*LabelAnnotation, error) {
 	if !ok {
 		return nil, fmt.Errorf("not have %s label in the service", controller.LabelEdgemeshGatewayConfig)
 	}
+	klog.V(4).Infof("gatewayProtocols:%s", gatewayProtocols)
 	gatewayPorts, ok := l[controller.LabelEdgemeshGatewayPort]
 	if !ok {
 		return nil, fmt.Errorf("not have %s label in the service", controller.LabelEdgemeshGatewayPort)
 	}
+	klog.V(4).Infof("gatewayPorts:%s", gatewayProtocols)
 
 	gatewayProtocolGroups := strings.Split(gatewayProtocols, GroupSparate)
 	if len(gatewayProtocolGroups) == 0 {
@@ -65,12 +69,12 @@ func (l Labels) extractLabels() (*LabelAnnotation, error) {
 	ServiceProtocolBox := make([]string, 0)
 	gatewayProtocolBox := make([]string, 0)
 
-	for _, gatewayProtocol := range gatewayProtocolGroups {
+	for i, gatewayProtocol := range gatewayProtocolGroups {
 
 		gatewayProtocolBox = append(gatewayProtocolBox, strings.ToUpper(gatewayProtocol))
 		ServiceProtocolBox = append(ServiceProtocolBox, strings.ToLower(gatewayProtocol))
 
-		ports := strings.Split(gatewayPorts, GatewayPortSeparate)
+		ports := strings.Split(gatewayPortGroups[i], GatewayPortSeparate)
 		if len(ports) != 2 {
 			return nil, fmt.Errorf("%s must containes from servicePort to gatewayPort", controller.LabelEdgemeshGatewayPort)
 		}
