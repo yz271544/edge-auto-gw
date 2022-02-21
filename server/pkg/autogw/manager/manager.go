@@ -2,6 +2,7 @@ package manager
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -244,10 +245,7 @@ func (mgr *AutoGwManager) deleteAtGateway(at *v1.Service) {
 // GenerateDestinationRule generate DestinationRule
 func GenerateDestinationRule(name, namespace string) (dr *istioapi.DestinationRule) {
 	dr = &istioapi.DestinationRule{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "DestinationRule",
-			APIVersion: istioapi.SchemeGroupVersion.String(),
-		},
+		TypeMeta: metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
@@ -313,10 +311,7 @@ func GenerateVirtualService(name, namespace string, gatewayProtocols []string, s
 	}
 
 	vs = &istioapi.VirtualService{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "VirtualService",
-			APIVersion: istioapi.SchemeGroupVersion.String(),
-		},
+		TypeMeta: metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
@@ -342,7 +337,7 @@ func GenerateGateway(name, namespace string, gatewayProtocols []string, gatewayP
 			Port: &networkingv1alpha3.Port{
 				Number:   gatewayPorts[i],
 				Protocol: gatewayProtocol,
-				Name:     strings.ToLower(gatewayProtocol) + "-0",
+				Name:     strings.Join([]string{strings.ToLower(gatewayProtocol), strconv.Itoa(i)}, GatewayPortSeparate),
 			},
 		}
 
@@ -351,10 +346,7 @@ func GenerateGateway(name, namespace string, gatewayProtocols []string, gatewayP
 	}
 
 	gw = &istioapi.Gateway{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Gateway",
-			APIVersion: istioapi.SchemeGroupVersion.String(),
-		},
+		TypeMeta: metav1.TypeMeta{},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      name,
 			Namespace: namespace,
