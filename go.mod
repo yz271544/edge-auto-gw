@@ -5,6 +5,7 @@ go 1.16
 require (
 	github.com/kubeedge/beehive v0.0.0
 	github.com/kubeedge/kubeedge v1.6.2
+	github.com/spf13/cast v1.3.1
 	github.com/spf13/cobra v1.2.1
 	istio.io/api v0.0.0-20210131044048-bfeb10697307
 	istio.io/client-go v0.0.0-20210218000043-b598dd019200

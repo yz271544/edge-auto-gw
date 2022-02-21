@@ -2,7 +2,6 @@ package manager
 
 import (
 	"context"
-	"strconv"
 	"strings"
 	"sync"
 
@@ -24,10 +23,6 @@ const (
 	httpProtocol   = "HTTP"
 	minGatewayPort = 30000
 	maxGatewayPort = 65535
-)
-
-var (
-	Protocols = []string{tcpProtocol, httpProtocol}
 )
 
 // Manager is gateway manager
@@ -85,53 +80,52 @@ func (mgr *AutoGwManager) addAtGateway(at *v1.Service) {
 		return
 	}
 
-	atLables := at.GetLabels()
-
-	isExposeGateway, gatewayProtocol, svcPort, gatewayPort := extractGatewayConfig(atLables)
-	klog.Infof("isExposeGateway:%v, gatewayProtocol:%s, svcPort:%d, gatewayPort:%d", isExposeGateway, gatewayProtocol, svcPort, gatewayPort)
-
-	if isExposeGateway {
-		ns := at.GetNamespace()
-		nm := at.GetName()
-
-		dr := GenerateDestinationRule(nm, ns)
-
-		vs := GenerateVirtualService(nm, ns, gatewayProtocol, svcPort)
-
-		gw := GenerateGateway(nm, ns, gatewayProtocol, gatewayPort)
-
-		if dr == nil {
-			klog.Errorf("auto add %s.%s failed, dr is nil", ns, nm)
-			return
-		}
-		if vs == nil {
-			klog.Errorf("auto add %s.%s failed, vs is nil", ns, nm)
-			return
-		}
-		if gw == nil {
-			klog.Errorf("auto add %s.%s failed, gw is nil", ns, nm)
-			return
-		}
-		client := mgr.ifm.GetIstioClient().NetworkingV1alpha3()
-
-		_, err = client.DestinationRules(ns).Create(context.Background(), dr, metav1.CreateOptions{})
-		if err != nil {
-			klog.Errorf("create destination rule failed: %v", err)
-			return
-		}
-
-		_, err = client.VirtualServices(ns).Create(context.Background(), vs, metav1.CreateOptions{})
-		if err != nil {
-			klog.Errorf("create virtualservice rule failed: %v", err)
-			return
-		}
-		_, err = client.Gateways(ns).Create(context.Background(), gw, metav1.CreateOptions{})
-		if err != nil {
-			klog.Errorf("create gateway rule failed: %v", err)
-			return
-		}
-		klog.Infof("have created the gateway vs dr %s", nm)
+	labelAn, err := Labels(at.GetLabels()).extractLabels()
+	if err != nil {
+		klog.Errorf("get labels extract %s", err)
+		return
 	}
+
+	ns := at.GetNamespace()
+	nm := at.GetName()
+
+	dr := GenerateDestinationRule(nm, ns)
+
+	vs := GenerateVirtualService(nm, ns, labelAn.GateWayProtocol, labelAn.ServicePort)
+
+	gw := GenerateGateway(nm, ns, labelAn.GateWayProtocol, labelAn.GatewayPort)
+
+	if dr == nil {
+		klog.Errorf("auto add %s.%s failed, dr is nil", ns, nm)
+		return
+	}
+	if vs == nil {
+		klog.Errorf("auto add %s.%s failed, vs is nil", ns, nm)
+		return
+	}
+	if gw == nil {
+		klog.Errorf("auto add %s.%s failed, gw is nil", ns, nm)
+		return
+	}
+	client := mgr.ifm.GetIstioClient().NetworkingV1alpha3()
+
+	_, err = client.DestinationRules(ns).Create(context.Background(), dr, metav1.CreateOptions{})
+	if err != nil {
+		klog.Errorf("create destination rule failed: %v", err)
+		return
+	}
+
+	_, err = client.VirtualServices(ns).Create(context.Background(), vs, metav1.CreateOptions{})
+	if err != nil {
+		klog.Errorf("create virtualservice rule failed: %v", err)
+		return
+	}
+	_, err = client.Gateways(ns).Create(context.Background(), gw, metav1.CreateOptions{})
+	if err != nil {
+		klog.Errorf("create gateway rule failed: %v", err)
+		return
+	}
+	klog.Infof("have created the gateway vs dr %s", nm)
 }
 
 // updateGateway update a gateway server
@@ -145,51 +139,51 @@ func (mgr *AutoGwManager) updateAtGateway(at *v1.Service) {
 		return
 	}
 
-	atLables := at.GetLabels()
-
-	isExposeGateway, gatewayProtocol, svcPort, gatewayPort := extractGatewayConfig(atLables)
-	klog.Infof("isExposeGateway:%v, gatewayProtocol:%s, svcPort:%d, gatewayPort:%d", isExposeGateway, gatewayProtocol, svcPort, gatewayPort)
-	if isExposeGateway {
-		ns := at.GetNamespace()
-		nm := at.GetName()
-
-		dr := GenerateDestinationRule(nm, ns)
-
-		vs := GenerateVirtualService(nm, ns, gatewayProtocol, svcPort)
-
-		gw := GenerateGateway(nm, ns, gatewayProtocol, gatewayPort)
-		if dr == nil {
-			klog.Errorf("auto update %s.%s failed, dr is nil", ns, nm)
-			return
-		}
-		if vs == nil {
-			klog.Errorf("auto update %s.%s failed, vs is nil", ns, nm)
-			return
-		}
-		if gw == nil {
-			klog.Errorf("auto update %s.%s failed, gw is nil", ns, nm)
-			return
-		}
-		client := mgr.ifm.GetIstioClient().NetworkingV1alpha3()
-
-		_, err = client.DestinationRules(ns).Update(context.Background(), dr, metav1.UpdateOptions{})
-		if err != nil {
-			klog.Errorf("update destination rule failed: %v", err)
-			return
-		}
-
-		_, err = client.VirtualServices(ns).Update(context.Background(), vs, metav1.UpdateOptions{})
-		if err != nil {
-			klog.Errorf("update virtualservice rule failed: %v", err)
-			return
-		}
-		_, err = client.Gateways(ns).Update(context.Background(), gw, metav1.UpdateOptions{})
-		if err != nil {
-			klog.Errorf("update gateway rule failed: %v", err)
-			return
-		}
-		klog.Infof("have updated the gateway vs dr %s", nm)
+	labelAn, err := Labels(at.GetLabels()).extractLabels()
+	if err != nil {
+		klog.Errorf("get labels extract %s", err)
+		return
 	}
+
+	ns := at.GetNamespace()
+	nm := at.GetName()
+
+	dr := GenerateDestinationRule(nm, ns)
+
+	vs := GenerateVirtualService(nm, ns, labelAn.GateWayProtocol, labelAn.ServicePort)
+
+	gw := GenerateGateway(nm, ns, labelAn.GateWayProtocol, labelAn.GatewayPort)
+	if dr == nil {
+		klog.Errorf("auto update %s.%s failed, dr is nil", ns, nm)
+		return
+	}
+	if vs == nil {
+		klog.Errorf("auto update %s.%s failed, vs is nil", ns, nm)
+		return
+	}
+	if gw == nil {
+		klog.Errorf("auto update %s.%s failed, gw is nil", ns, nm)
+		return
+	}
+	client := mgr.ifm.GetIstioClient().NetworkingV1alpha3()
+
+	_, err = client.DestinationRules(ns).Update(context.Background(), dr, metav1.UpdateOptions{})
+	if err != nil {
+		klog.Errorf("update destination rule failed: %v", err)
+		return
+	}
+
+	_, err = client.VirtualServices(ns).Update(context.Background(), vs, metav1.UpdateOptions{})
+	if err != nil {
+		klog.Errorf("update virtualservice rule failed: %v", err)
+		return
+	}
+	_, err = client.Gateways(ns).Update(context.Background(), gw, metav1.UpdateOptions{})
+	if err != nil {
+		klog.Errorf("update gateway rule failed: %v", err)
+		return
+	}
+	klog.Infof("have updated the gateway vs dr %s", nm)
 }
 
 // deleteGateway delete a gateway server
@@ -245,59 +239,6 @@ func (mgr *AutoGwManager) deleteAtGateway(at *v1.Service) {
 	}
 
 	klog.Infof("have deleted the gateway vs dr %s", nm)
-}
-
-// extractGatewayConfig Extract the Gateway Protocol and Port
-func extractGatewayConfig(atLables map[string]string) (isExposeGateway bool, gatewayProtocol string, svcPort uint32, gatewayPort uint32) {
-
-	if _, ok := atLables[controller.LabelEdgemeshGatewayConfig]; !ok {
-		klog.V(4).Infof("not have %s label in the service.", controller.LabelEdgemeshGatewayConfig)
-		return false, "", 0, 0
-	}
-
-	if _, ok := atLables[controller.LabelEdgemeshGatewayPort]; !ok {
-		klog.V(4).Infof("not have %s label in the service.", controller.LabelEdgemeshGatewayPort)
-		return false, "", 0, 0
-	}
-
-	for _, protocol := range Protocols {
-		if protocol == atLables[controller.LabelEdgemeshGatewayConfig] {
-			gatewayProtocol = protocol
-		}
-	}
-
-	edgemeshGatewayPort := atLables[controller.LabelEdgemeshGatewayPort]
-	sets := strings.Split(edgemeshGatewayPort, "-")
-
-	if len(sets) >= 2 {
-		// extract Servcie port
-		port, err := strconv.Atoi(sets[0])
-		if err != nil {
-			klog.V(4).Infof("svcPort %s not convert integer: %v", sets[0], err)
-			return false, "", 0, 0
-		}
-		if port > 0 && port <= maxGatewayPort {
-			svcPort = uint32(port)
-		} else {
-			klog.V(4).Infof("svcPort %d is invalid scope", port)
-			return false, "", 0, 0
-		}
-		// extract Gateway expose port
-		port, err = strconv.Atoi(sets[1])
-		if err != nil {
-			klog.V(4).Infof("gatewayPort %s not convert integer: %v", sets[1], err)
-			return false, "", 0, 0
-		}
-		if port >= minGatewayPort && port <= maxGatewayPort {
-			gatewayPort = uint32(port)
-		} else {
-			klog.V(4).Infof("gatewayPort %d is invalid scope", port)
-		}
-		isExposeGateway = true
-		return
-	}
-	klog.V(4).Infof("gateway-port %s is invalid format: SvcPort-GatewayPort", edgemeshGatewayPort)
-	return false, "", 0, 0
 }
 
 // GenerateDestinationRule generate DestinationRule
