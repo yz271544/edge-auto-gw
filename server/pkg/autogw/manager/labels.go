@@ -40,9 +40,9 @@ type Labels map[string]string
 
 // extractLabels return k8s service label information.
 func (l Labels) extractLabels() (*LabelAnnotation, error) {
-	gatewayProtocols, ok := l[controller.LabelEdgemeshGatewayConfig]
+	gatewayProtocols, ok := l[controller.LabelEdgemeshGatewayProtocols]
 	if !ok {
-		return nil, fmt.Errorf("not have %s label in the service", controller.LabelEdgemeshGatewayConfig)
+		return nil, fmt.Errorf("not have %s label in the service", controller.LabelEdgemeshGatewayProtocols)
 	}
 	klog.V(4).Infof("gatewayProtocols:%s", gatewayProtocols)
 	gatewayPorts, ok := l[controller.LabelEdgemeshGatewayPort]

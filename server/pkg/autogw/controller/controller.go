@@ -19,8 +19,8 @@ const (
 	labelEdgeMeshServiceProxyName = "service.edgemesh.kubeedge.io/service-proxy-name"
 	labelNoProxyEdgeMesh          = "noproxy"
 
-	LabelEdgemeshGatewayConfig = "kubeedge.io/edgemesh-gateway"
-	LabelEdgemeshGatewayPort   = "kubeedge.io/edgemesh-gateway-port"
+	LabelEdgemeshGatewayProtocols = "kubeedge.io/edgemesh-gateway_protocols"
+	LabelEdgemeshGatewayPort      = "kubeedge.io/edgemesh-gateway-ports"
 )
 
 var (
@@ -49,9 +49,9 @@ func Init(ifm *informers.Manager, cfg *config.EdgeAutoGwConfig) {
 			klog.Errorf("set selector label %s for request failed: %v", labelEdgeMeshServiceProxyName, err)
 		}
 
-		hasGateway, err := labels.NewRequirement(LabelEdgemeshGatewayConfig, selection.Exists, nil)
+		hasGateway, err := labels.NewRequirement(LabelEdgemeshGatewayProtocols, selection.Exists, nil)
 		if err != nil {
-			klog.Errorf("set selector label %s for request failed: %v", LabelEdgemeshGatewayConfig, err)
+			klog.Errorf("set selector label %s for request failed: %v", LabelEdgemeshGatewayProtocols, err)
 		}
 
 		labelSelector := labels.NewSelector()
