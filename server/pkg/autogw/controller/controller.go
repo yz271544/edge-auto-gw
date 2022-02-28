@@ -19,8 +19,8 @@ const (
 	labelEdgeMeshServiceProxyName = "service.edgemesh.kubeedge.io/service-proxy-name"
 	labelNoProxyEdgeMesh          = "noproxy"
 
-	LabelEdgemeshGatewayConfig = "networking.istio.io/edgemesh-gateway"
-	LabelEdgemeshGatewayPort   = "networking.istio.io/edgemesh-gateway-port"
+	LabelEdgemeshGatewayConfig = "kubeedge.io/edgemesh-gateway"
+	LabelEdgemeshGatewayPort   = "kubeedge.io/edgemesh-gateway-port"
 )
 
 var (
