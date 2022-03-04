@@ -19,7 +19,7 @@ const (
 	labelEdgeMeshServiceProxyName = "service.edgemesh.kubeedge.io/service-proxy-name"
 	labelNoProxyEdgeMesh          = "noproxy"
 
-	LabelEdgemeshGatewayProtocols = "kubeedge.io/edgemesh-gateway_protocols"
+	LabelEdgemeshGatewayProtocols = "kubeedge.io/edgemesh-gateway-protocols"
 	LabelEdgemeshGatewayPort      = "kubeedge.io/edgemesh-gateway-ports"
 )
 
