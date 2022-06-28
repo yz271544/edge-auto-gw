@@ -28,7 +28,7 @@ EDGE_AUTO_GW_OUTPUT="${EDGE_AUTO_GW_ROOT}/${EDGE_AUTO_GW_OUTPUT_SUBPATH}"
 EDGE_AUTO_GW_OUTPUT_BINPATH="${EDGE_AUTO_GW_OUTPUT}/bin"
 EDGE_AUTO_GW_OUTPUT_IMAGEPATH="${EDGE_AUTO_GW_OUTPUT}/image"
 
-readonly EDGE_AUTO_GW_GO_PACKAGE="github.com/kubeedge/edge_auto_gw"
+readonly EDGE_AUTO_GW_GO_PACKAGE="github.com/yz271544/edge-auto-gw"
 
 source "${EDGE_AUTO_GW_ROOT}/hack/lib/golang.sh"
 source "${EDGE_AUTO_GW_ROOT}/hack/lib/lint.sh"

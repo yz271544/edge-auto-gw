@@ -337,7 +337,7 @@ func GenerateGateway(name, namespace string, gatewayProtocols []string, gatewayP
 			Port: &networkingv1alpha3.Port{
 				Number:   gatewayPorts[i],
 				Protocol: gatewayProtocol,
-				Name:     strings.Join([]string{strings.ToLower(gatewayProtocol), strconv.Itoa(i)}, GatewayPortSeparate),
+				Name:     strings.Join([]string{strings.ToLower(gatewayProtocol), strconv.Itoa(i)}, GATEWAY_PORT_SEPARATE),
 			},
 		}
 

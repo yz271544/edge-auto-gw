@@ -152,7 +152,7 @@ edge_auto_gw::check::env() {
 }
 
 ALL_BINARIES_AND_TARGETS=(
-  edge-auto-gw:agent/cmd/edge-auto-gw
+  edge-auto-gw:server/cmd/edge-auto-gw
 )
 
 edge_auto_gw::golang::get_target_by_binary() {
@@ -213,13 +213,13 @@ edge_auto_gw::golang::build_binaries() {
   gogcflags="${GOGCFLAGS:-}"
 
 
-  mkdir -p ${edge_auto_gw_OUTPUT_BINPATH}
+  mkdir -p ${EDGE_AUTO_GW_OUTPUT_BINPATH}
 
   for bin in ${binaries[@]}; do
     echo "building $bin"
     local name="${bin##*/}"
     set -x
-    go build -o ${edge_auto_gw_OUTPUT_BINPATH}/${name} -gcflags="${gogcflags:-}" -ldflags "${goldflags:-}" $bin
+    go build -o ${EDGE_AUTO_GW_OUTPUT_BINPATH}/${name} -gcflags="${gogcflags:-}" -ldflags "${goldflags:-}" $bin
     set +x
   done
 

@@ -19,8 +19,7 @@ const (
 	labelEdgeMeshServiceProxyName = "service.edgemesh.kubeedge.io/service-proxy-name"
 	labelNoProxyEdgeMesh          = "noproxy"
 
-	LabelEdgemeshGatewayProtocols = "kubeedge.io/edgemesh-gateway-protocols"
-	LabelEdgemeshGatewayPort      = "kubeedge.io/edgemesh-gateway-ports"
+	LabelEdgemeshGateway = "kubeedge.io/edgemesh-gateway"
 )
 
 var (
@@ -49,9 +48,9 @@ func Init(ifm *informers.Manager, cfg *config.EdgeAutoGwConfig) {
 			klog.Errorf("set selector label %s for request failed: %v", labelEdgeMeshServiceProxyName, err)
 		}
 
-		hasGateway, err := labels.NewRequirement(LabelEdgemeshGatewayProtocols, selection.Exists, nil)
+		hasGateway, err := labels.NewRequirement(LabelEdgemeshGateway, selection.Exists, nil)
 		if err != nil {
-			klog.Errorf("set selector label %s for request failed: %v", LabelEdgemeshGatewayProtocols, err)
+			klog.Errorf("set selector label %s for request failed: %v", LabelEdgemeshGateway, err)
 		}
 
 		labelSelector := labels.NewSelector()
@@ -74,15 +73,10 @@ func Init(ifm *informers.Manager, cfg *config.EdgeAutoGwConfig) {
 }
 
 func (c *AutoGatewayController) onCacheSynced() {
-
 	for name, funcs := range c.atEventHandlers {
 		klog.V(4).Infof("enable edge-auto-gw event handler funcs: %s", name)
 		c.atInformer.AddEventHandler(funcs)
 	}
-
-	// set informers event handler
-	// c.gwInformer.AddEventHandler(cache.ResourceEventHandlerFuncs{
-	// 	AddFunc: c.gwAdd, UpdateFunc: c.gwUpdate, DeleteFunc: c.gwDelete})
 }
 
 func (c *AutoGatewayController) SetAutoGatewayEventHandlers(name string, handlerFuncs cache.ResourceEventHandlerFuncs) {

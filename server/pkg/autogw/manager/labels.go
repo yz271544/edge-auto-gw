@@ -26,8 +26,8 @@ import (
 	"github.com/yz271544/edge-auto-gw/server/pkg/autogw/controller"
 )
 
-const GatewayPortSeparate = "-"
-const GroupSparate = "."
+const GATEWAY_PORT_SEPARATE = "-"
+const GROUP_SEPARATE = "."
 
 type LabelAnnotation struct {
 	ServicePort     []uint32
@@ -40,28 +40,15 @@ type Labels map[string]string
 
 // extractLabels return k8s service label information.
 func (l Labels) extractLabels() (*LabelAnnotation, error) {
-	gatewayProtocols, ok := l[controller.LabelEdgemeshGatewayProtocols]
+	edgemeshGateway, ok := l[controller.LabelEdgemeshGateway]
 	if !ok {
-		return nil, fmt.Errorf("not have %s label in the service", controller.LabelEdgemeshGatewayProtocols)
+		return nil, fmt.Errorf("not have %s label in the service", controller.LabelEdgemeshGateway)
 	}
-	klog.V(4).Infof("gatewayProtocols:%s", gatewayProtocols)
-	gatewayPorts, ok := l[controller.LabelEdgemeshGatewayPort]
-	if !ok {
-		return nil, fmt.Errorf("not have %s label in the service", controller.LabelEdgemeshGatewayPort)
-	}
-	klog.V(4).Infof("gatewayPorts:%s", gatewayProtocols)
+	klog.V(4).Infof("gatewayProtocols:%s", edgemeshGateway)
 
-	gatewayProtocolGroups := strings.Split(gatewayProtocols, GroupSparate)
-	if len(gatewayProtocolGroups) == 0 {
+	edgemeshGatewayGroups := strings.Split(edgemeshGateway, GROUP_SEPARATE)
+	if len(edgemeshGatewayGroups) == 0 {
 		return nil, fmt.Errorf("not config the protocol values, example:%s", "TCP.TCP or TCP.HTTP")
-	}
-	gatewayPortGroups := strings.Split(gatewayPorts, GroupSparate)
-	if len(gatewayPortGroups) == 0 {
-		return nil, fmt.Errorf("not config the port values, example:%s", "TCP.TCP or TCP.HTTP")
-	}
-
-	if len(gatewayProtocolGroups) != len(gatewayPortGroups) {
-		return nil, fmt.Errorf("config error: protocol groups [%d] not equals with port groups [%d]", len(gatewayProtocolGroups), len(gatewayPortGroups))
 	}
 
 	servicePortBox := make([]uint32, 0)
@@ -69,24 +56,25 @@ func (l Labels) extractLabels() (*LabelAnnotation, error) {
 	ServiceProtocolBox := make([]string, 0)
 	gatewayProtocolBox := make([]string, 0)
 
-	for i, gatewayProtocol := range gatewayProtocolGroups {
+	for _, edgemeshGatewayGroup := range edgemeshGatewayGroups {
 
-		gatewayProtocolBox = append(gatewayProtocolBox, strings.ToUpper(gatewayProtocol))
-		ServiceProtocolBox = append(ServiceProtocolBox, strings.ToLower(gatewayProtocol))
+		edgeGatewaySlice := strings.Split(edgemeshGatewayGroup, GATEWAY_PORT_SEPARATE)
 
-		ports := strings.Split(gatewayPortGroups[i], GatewayPortSeparate)
-		if len(ports) != 2 {
-			return nil, fmt.Errorf("%s must containes from servicePort to gatewayPort", controller.LabelEdgemeshGatewayPort)
+		if len(edgeGatewaySlice) != 3 {
+			return nil, fmt.Errorf("config error: protocol groups [%d] not equals with port groups [%d]", len(edgeGatewaySlice), 3)
 		}
 
-		servicePort := cast.ToUint32(ports[0])
+		gatewayProtocolBox = append(gatewayProtocolBox, strings.ToUpper(edgeGatewaySlice[0]))
+		ServiceProtocolBox = append(ServiceProtocolBox, strings.ToLower(edgeGatewaySlice[1]))
+
+		servicePort := cast.ToUint32(edgeGatewaySlice[1])
 		if ok := ValidateServicePort(servicePort); !ok {
-			return nil, fmt.Errorf("service port must >0 and < 65535", servicePort)
+			return nil, fmt.Errorf("service port [%d], should must >0 and < 65535", servicePort)
 		}
 
-		gatewayPort := cast.ToUint32(ports[1])
+		gatewayPort := cast.ToUint32(edgeGatewaySlice[2])
 		if ok := ValidateGatewayPort(gatewayPort); !ok {
-			return nil, fmt.Errorf("gateway port must > 30000 and < 65535", gatewayPort)
+			return nil, fmt.Errorf("gateway port [%d], should must > 30000 and < 65535", gatewayPort)
 		}
 
 		servicePortBox = append(servicePortBox, servicePort)
