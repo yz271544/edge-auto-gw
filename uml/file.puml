@@ -1,0 +1,72 @@
+@startuml
+namespace config {
+ class EdgeAutoGwConfig {
+  metav1.TypeMeta
+  CommonConfig *CommonConfig
+  KubeAPIConfig *v1alpha1.KubeAPIConfig
+  Modules *Modules
+} 
+}
+namespace config {
+ class CommonConfig {
+  ConfigMapName string
+} 
+}
+namespace config {
+ class Modules {
+  EdgeAutoConfig *autogwconfig.EdgeAutoGwConfig
+} 
+}
+namespace options {
+ class EdgeAutoGwOptions {
+  ConfigFile string
+} 
+}
+namespace informers {
+ class Manager {
+  kubeClient kubernetes.Interface
+  istioClient istio.Interface
+  kubeFactory k8sinformers.SharedInformerFactory
+  istioFactory istioinformers.SharedInformerFactory
+  lock sync.Mutex
+  informers map[string]cache.SharedIndexInformer
+  syncedFuncs []syncedFunc
+} 
+}
+namespace config {
+ class EdgeAutoGwConfig {
+  Enable bool
+} 
+}
+namespace controller {
+ class AutoGatewayController {
+  sync.RWMutex
+  atInformer cache.SharedIndexInformer
+  atEventHandlers map[string]cache.ResourceEventHandlerFuncs
+} 
+}
+namespace manager {
+ class LabelAnnotation {
+  ServicePort []uint32
+  ServiceProtocol []string
+  GatewayPort []uint32
+  GateWayProtocol []string
+} 
+}
+namespace manager {
+ class AutoGwManager {
+  lock sync.Mutex
+  ifm *informers.Manager
+} 
+}
+namespace autogw {
+ class EdgeAutoGw {
+  Config *config.EdgeAutoGwConfig
+} 
+}
+EdgeAutoGwConfig ---> CommonConfig : CommonConfig
+EdgeAutoGwConfig ---> Modules : Modules
+Modules ---> EdgeAutoGwConfig : EdgeAutoConfig
+AutoGwManager ---> Manager : ifm
+EdgeAutoGw ---> EdgeAutoGwConfig : Config
+@enduml
