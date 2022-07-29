@@ -22,7 +22,7 @@ namespace options {
   ConfigFile string
 } 
 }
-namespace informers {
+namespace informers {:wq
  class Manager {
   kubeClient kubernetes.Interface
   istioClient istio.Interface
