@@ -40,7 +40,6 @@ edge_auto_gw::buildx::prepare_env() {
 
 edge_auto_gw::buildx:generate-dockerfile() {
   dockerfile=${1}
-  echo "dockerfile:${dockerfile}"
   sed "/AS builder/s/FROM/FROM --platform=\$BUILDPLATFORM/g" ${dockerfile}
 }
 
