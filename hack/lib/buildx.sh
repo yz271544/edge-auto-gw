@@ -40,6 +40,7 @@ edge_auto_gw::buildx::prepare_env() {
 
 edge_auto_gw::buildx:generate-dockerfile() {
   dockerfile=${1}
+  echo "dockerfile:${dockerfile}"
   sed "/AS builder/s/FROM/FROM --platform=\$BUILDPLATFORM/g" ${dockerfile}
 }
 
@@ -47,18 +48,19 @@ edge_auto_gw::buildx:generate-dockerfile() {
 edge_auto_gw::buildx::build-multi-platform-images() {
   edge_auto_gw::buildx::prepare_env
 
-
+  echo "EDGE_AUTO_GW_OUTPUT_IMAGEPATH:${EDGE_AUTO_GW_OUTPUT_IMAGEPATH}"
   mkdir -p ${EDGE_AUTO_GW_OUTPUT_IMAGEPATH}
   arch_array=(${PLATFORMS//,/ })
 
   temp_dockerfile=${EDGE_AUTO_GW_OUTPUT_IMAGEPATH}/buildx_dockerfile
+  echo "temp_dockerfile:${temp_dockerfile}"
   for component in ${COMPONENTS[@]}; do
     echo "building ${PLATFORMS} image for edge-auto-gw-${component}"
 
     edge_auto_gw::buildx:generate-dockerfile build/${component}/Dockerfile > ${temp_dockerfile}
 
     for arch in ${arch_array[@]}; do
-      tag_name=${IMAGE_REPO}/edge-auto-gw-${component}:${IMAGE_TAG}-${arch////-}
+      tag_name=${IMAGE_REPO}/${component}:${IMAGE_TAG}-${arch////-}
       echo "building ${arch} image for ${component} and the image tag name is ${tag_name}"
 
       docker buildx build -o type=docker \

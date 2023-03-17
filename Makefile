@@ -13,7 +13,7 @@
 # limitations under the License.
 
 GOPATH?=$(shell go env GOPATH)
-IMAGE_REPO ?= kubeedge
+IMAGE_REPO ?= docker.gridsumdissector.com/kubeedge
 ARCH ?= amd64
 IMAGE_TAG ?= $(shell git describe --tags)
 GO_LDFLAGS='$(shell hack/make-rules/version.sh)'
